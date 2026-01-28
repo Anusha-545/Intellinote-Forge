@@ -1,0 +1,461 @@
+import React, { useState } from 'react';
+import { UserPlus, Eye, EyeOff, Mail, Lock, User, AlertCircle, Check, FileText } from 'lucide-react';
+import Header from './Header';
+import Footer from './Footer';
+import { Link } from 'react-router-dom';
+
+function Register() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    acceptTerms: false,
+    newsletter: true
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [passwordStrength, setPasswordStrength] = useState(0);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+
+    // Check password strength
+    if (name === 'password') {
+      calculatePasswordStrength(value);
+    }
+
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const calculatePasswordStrength = (password) => {
+    let strength = 0;
+    
+    if (password.length >= 8) strength += 1;
+    if (/[A-Z]/.test(password)) strength += 1;
+    if (/[0-9]/.test(password)) strength += 1;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+    
+    setPasswordStrength(strength);
+  };
+
+  const getPasswordStrengthColor = () => {
+    if (passwordStrength === 0) return 'bg-gray-200';
+    if (passwordStrength === 1) return 'bg-red-500';
+    if (passwordStrength === 2) return 'bg-orange-500';
+    if (passwordStrength === 3) return 'bg-yellow-500';
+    return 'bg-green-500';
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required';
+    }
+    
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
+    }
+    
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    if (!formData.acceptTerms) {
+      newErrors.acceptTerms = 'You must accept the terms and conditions';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log('Registration attempt:', formData);
+      // In real app: await axios.post('/api/auth/register', formData);
+    } catch (error) {
+      console.error('Registration error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const planFeatures = [
+    'Process 50 PDFs monthly',
+    'Unlimited text extraction',
+    'AI-powered summaries',
+    '30-day document storage',
+    'Email support'
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <Header />
+      
+      <main className="container mx-auto px-4 py-12">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Registration Form */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10">
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl mb-4">
+                    <UserPlus className="w-8 h-8 text-white" />
+                  </div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    Join <span className="text-blue-600">Intellinote Forge</span>
+                  </h1>
+                  <p className="text-gray-600">
+                    Create your account and start processing PDFs with AI in minutes
+                  </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Name Fields */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        First Name
+                      </label>
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 border ${errors.firstName ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300`}
+                        placeholder="John"
+                      />
+                      {errors.firstName && (
+                        <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          {errors.firstName}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Last Name
+                      </label>
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 border ${errors.lastName ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300`}
+                        placeholder="Doe"
+                      />
+                      {errors.lastName && (
+                        <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          {errors.lastName}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Email Field */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <Mail className="w-4 h-4" />
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 border ${errors.email ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300`}
+                      placeholder="you@example.com"
+                    />
+                    {errors.email && (
+                      <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                        <AlertCircle className="w-4 h-4" />
+                        {errors.email}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Password Field */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <Lock className="w-4 h-4" />
+                      Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 border ${errors.password ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300 pr-12`}
+                        placeholder="Create a strong password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                    
+                    {/* Password Strength Indicator */}
+                    {formData.password && (
+                      <div className="mt-3">
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm text-gray-600">Password strength</span>
+                          <span className="text-sm font-medium">
+                            {passwordStrength === 0 && 'Very Weak'}
+                            {passwordStrength === 1 && 'Weak'}
+                            {passwordStrength === 2 && 'Fair'}
+                            {passwordStrength === 3 && 'Good'}
+                            {passwordStrength === 4 && 'Strong'}
+                          </span>
+                        </div>
+                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${getPasswordStrengthColor()} transition-all duration-300`}
+                            style={{ width: `${passwordStrength * 25}%` }}
+                          />
+                        </div>
+                        
+                        {/* Password Requirements */}
+                        <div className="grid grid-cols-2 gap-2 mt-3">
+                          {[
+                            { text: 'At least 8 characters', met: formData.password.length >= 8 },
+                            { text: 'One uppercase letter', met: /[A-Z]/.test(formData.password) },
+                            { text: 'One number', met: /[0-9]/.test(formData.password) },
+                            { text: 'One special character', met: /[^A-Za-z0-9]/.test(formData.password) }
+                          ].map((req, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                              {req.met ? (
+                                <Check className="w-4 h-4 text-green-500" />
+                              ) : (
+                                <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
+                              )}
+                              <span className={`text-sm ${req.met ? 'text-green-600' : 'text-gray-500'}`}>
+                                {req.text}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {errors.password && (
+                      <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                        <AlertCircle className="w-4 h-4" />
+                        {errors.password}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Confirm Password Field */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Confirm Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 border ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300 pr-12`}
+                        placeholder="Confirm your password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                    {errors.confirmPassword && (
+                      <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                        <AlertCircle className="w-4 h-4" />
+                        {errors.confirmPassword}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Terms and Newsletter */}
+                  <div className="space-y-4">
+                    <label className={`flex items-start gap-3 cursor-pointer ${errors.acceptTerms ? 'text-red-600' : 'text-gray-700'}`}>
+                      <input
+                        type="checkbox"
+                        name="acceptTerms"
+                        checked={formData.acceptTerms}
+                        onChange={handleChange}
+                        className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <div>
+                        <span>I agree to the </span>
+                        <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
+                          Terms of Service
+                        </a>
+                        <span> and </span>
+                        <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
+                          Privacy Policy
+                        </a>
+                        {errors.acceptTerms && (
+                          <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                            <AlertCircle className="w-4 h-4" />
+                            {errors.acceptTerms}
+                          </div>
+                        )}
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-3 cursor-pointer text-gray-700">
+                      <input
+                        type="checkbox"
+                        name="newsletter"
+                        checked={formData.newsletter}
+                        onChange={handleChange}
+                        className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <div>
+                        <span>Yes, I'd like to receive product updates, tips, and exclusive offers via email</span>
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`w-full py-3 px-4 rounded-lg font-semibold transition duration-300 ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transform hover:scale-[1.02]'} text-white`}
+                  >
+                    {isLoading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Creating Account...
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-2">
+                        <UserPlus className="w-5 h-5" />
+                        Create Free Account
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Login Link */}
+                  <div className="text-center pt-4 border-t border-gray-200">
+                    <p className="text-gray-600">
+                      Already have an account?{' '}
+                      <Link to="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
+                        Sign in here
+                      </Link>
+                    </p>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            {/* Right Column - Plan Features */}
+            <div className="space-y-8">
+              {/* Free Plan Card */}
+              <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white">
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FileText className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">Free Plan</h3>
+                  <div className="text-4xl font-bold mb-4">$0<span className="text-xl font-normal">/month</span></div>
+                  <p className="text-blue-100">Perfect for getting started with AI document processing</p>
+                </div>
+                
+                <ul className="space-y-3 mb-8">
+                  {planFeatures.map((feature, index) => (
+                    <li key={index} className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-green-300" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <div className="text-center text-blue-200 text-sm">
+                  No credit card required • Upgrade anytime
+                </div>
+              </div>
+
+              {/* Benefits Card */}
+              <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Why Join Intellinote Forge?</h3>
+                <ul className="space-y-4">
+                  {[
+                    'AI-powered text extraction that actually works',
+                    'Lightning-fast Groq AI processing',
+                    'Secure and private document handling',
+                    'Export summaries in multiple formats',
+                    'Join 50,000+ satisfied users'
+                  ].map((benefit, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                        <div className="w-2 h-2 bg-blue-600 rounded-full" />
+                      </div>
+                      <span className="text-gray-700">{benefit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Security Info */}
+              <div className="bg-gradient-to-r from-gray-900 to-black rounded-2xl p-8 text-white">
+                <h3 className="text-xl font-bold mb-4">Enterprise-Grade Security</h3>
+                <p className="text-gray-300 mb-6">
+                  Your documents are encrypted end-to-end. We automatically delete processed files after 30 days for maximum privacy.
+                </p>
+                <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  SOC 2 Type II Certified • GDPR Compliant
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+}
+
+export default Register;
