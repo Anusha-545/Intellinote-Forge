@@ -8,7 +8,7 @@ import Header from './Header';
 import Footer from './Footer';
 
 // Configure axios
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "https://intellinote-backend.onrender.com";
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
