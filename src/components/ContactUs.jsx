@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageSquare, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
+import { Link } from 'react-router-dom';
 
 function ContactUs() {
   const [formData, setFormData] = useState({
@@ -143,12 +144,12 @@ function ContactUs() {
                       <p className="text-gray-600 font-medium">{method.details}</p>
                       <p className="text-gray-500 text-sm mt-1">{method.description}</p>
                       {method.action && (
-                        <a 
-                          href={method.action}
+                        <Link 
+                          to={method.action}
                           className="inline-block mt-2 text-blue-600 hover:text-blue-700 font-medium text-sm"
                         >
                           Contact Now →
-                        </a>
+                        </Link>
                       )}
                     </div>
                   </div>
@@ -178,24 +179,24 @@ function ContactUs() {
               <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Resources</h3>
               <ul className="space-y-3">
                 <li>
-                  <a href="#" className="text-gray-600 hover:text-blue-600 flex items-center gap-2 transition duration-300">
+                  <Link to='/' className="text-gray-600 hover:text-blue-600 flex items-center gap-2 transition duration-300">
                     <span>📄</span> Documentation & API Guide
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-600 hover:text-blue-600 flex items-center gap-2 transition duration-300">
+                  <Link to='/' className="text-gray-600 hover:text-blue-600 flex items-center gap-2 transition duration-300">
                     <span>🎥</span> Video Tutorials
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-600 hover:text-blue-600 flex items-center gap-2 transition duration-300">
+                  <Link to='/' className="text-gray-600 hover:text-blue-600 flex items-center gap-2 transition duration-300">
                     <span>📋</span> Pricing Plans
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="text-gray-600 hover:text-blue-600 flex items-center gap-2 transition duration-300">
+                  <Link to='/' className="text-gray-600 hover:text-blue-600 flex items-center gap-2 transition duration-300">
                     <span>🔧</span> Technical Support
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -343,13 +344,13 @@ function ContactUs() {
                   ))}
                 </div>
                 <div className="mt-6 text-center">
-                  <a 
-                    href="#" 
+                  <Link 
+                    to='/'
                     className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1"
                   >
                     View all FAQs
                     <span>→</span>
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -379,13 +380,13 @@ function ContactUs() {
                   <p className="text-gray-300 mb-4">
                     24/7 premium support available for enterprise customers with custom PDF processing needs.
                   </p>
-                  <a 
-                    href="#" 
+                  <Link
+                    to='/'
                     className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-medium"
                   >
                     Learn about Enterprise Plans
                     <span>→</span>
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

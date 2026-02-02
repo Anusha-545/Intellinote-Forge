@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Menu, X, FileText, User } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const navigate = useNavigate()
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
@@ -21,25 +25,31 @@ function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition duration-300">
+            <Link to='/' className="text-gray-700 hover:text-blue-600 font-medium transition duration-300">
               Home
-            </a>
-            <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition duration-300">
+            </Link>
+            <Link to='/chat' className="text-gray-700 hover:text-blue-600 font-medium transition duration-300">
               Upload
-            </a>
-            <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition duration-300">
+            </Link>
+            <Link to='/about' className="text-gray-700 hover:text-blue-600 font-medium transition duration-300">
               About
-            </a>
-            <a href="#" className="text-gray-700 hover:text-blue-600 font-medium transition duration-300">
+            </Link>
+            <Link to='/contact' className="text-gray-700 hover:text-blue-600 font-medium transition duration-300">
               Contact
-            </a>
+            </Link>
             
-            <div className="flex items-center space-x-4">
-              <button className="text-gray-700 hover:text-blue-600 font-medium py-2 px-4 transition duration-300 flex items-center gap-2">
+            <div className="flex items-center space-x-4"
+            
+            >
+              <button className="text-gray-700 hover:text-blue-600 font-medium py-2 px-4 transition duration-300 flex items-center gap-2"
+              onClick={() => navigate('/login')}
+              >
                 <User size={18} />
                 Login
               </button>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-300">
+              <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-300"
+              onClick={() => navigate('/register')}
+              >
                 Register
               </button>
             </div>
@@ -58,24 +68,28 @@ function Header() {
         {isMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-gray-200 pt-4">
             <div className="flex flex-col space-y-4">
-              <a href="#" className="text-gray-700 hover:text-blue-600 font-medium py-2">
+              <Link to='/' className="text-gray-700 hover:text-blue-600 font-medium py-2">
                 Home
-              </a>
-              <a href="#" className="text-gray-700 hover:text-blue-600 font-medium py-2">
+              </Link>
+              <Link to='/chat' className="text-gray-700 hover:text-blue-600 font-medium py-2">
                 Upload
-              </a>
-              <a href="#" className="text-gray-700 hover:text-blue-600 font-medium py-2">
+              </Link>
+              <Link to='/about' className="text-gray-700 hover:text-blue-600 font-medium py-2">
                 About
-              </a>
-              <a href="#" className="text-gray-700 hover:text-blue-600 font-medium py-2">
+              </Link>
+              <Link to='/contact' className="text-gray-700 hover:text-blue-600 font-medium py-2">
                 Contact
-              </a>
+              </Link>
               <div className="flex flex-col space-y-3 pt-4 border-t border-gray-200">
-                <button className="text-gray-700 hover:text-blue-600 font-medium py-2 text-left flex items-center gap-2">
+                <button className="text-gray-700 hover:text-blue-600 font-medium py-2 text-left flex items-center gap-2"
+                onClick={() => navigate('/login')}
+                >
                   <User size={18} />
                   Login
                 </button>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg text-center">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg text-center"
+                onClick={() => navigate('/register')}
+                >
                   Register
                 </button>
               </div>

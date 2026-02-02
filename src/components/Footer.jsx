@@ -1,5 +1,6 @@
 import React from 'react';
 import { Mail, Phone, MapPin, ExternalLink, Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 function Footer() {
   return (
@@ -19,13 +20,13 @@ function Footer() {
             </p>
             <div className="flex space-x-4">
               {['Twitter', 'LinkedIn', 'GitHub'].map((social) => (
-                <a 
+                <Link
                   key={social}
-                  href="#" 
+                  to={social} 
                   className="text-gray-400 hover:text-white transition duration-300"
                 >
                   {social}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -36,12 +37,12 @@ function Footer() {
             <ul className="space-y-2">
               {['Home', 'Upload PDF', 'Dashboard', 'Pricing', 'Documentation'].map((link) => (
                 <li key={link}>
-                  <a 
-                    href="#" 
+                  <Link
+                    to={link}
                     className="text-gray-400 hover:text-white transition duration-300 hover:pl-2 block"
                   >
                     {link}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -72,12 +73,12 @@ function Footer() {
             <ul className="space-y-2">
               {['Privacy Policy', 'Terms of Service', 'Cookie Policy', 'Data Processing Agreement'].map((policy) => (
                 <li key={policy}>
-                  <a 
-                    href="#" 
+                  <Link
+                    to={policy} 
                     className="text-gray-400 hover:text-white transition duration-300 hover:pl-2 block"
                   >
                     {policy}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

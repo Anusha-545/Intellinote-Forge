@@ -1,15 +1,29 @@
 import React, { useState } from 'react';
-import { UserPlus, Eye, EyeOff, Mail, Lock, User, AlertCircle, Check, FileText } from 'lucide-react';
+import { 
+  UserPlus, Eye, EyeOff, Mail, Lock, User, AlertCircle, Check, 
+  FileText, Shield, Loader2 
+} from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Header from './Header';
 import Footer from './Footer';
-import { Link } from 'react-router-dom';
+
+// Configure axios
+const API_BASE_URL =  'http://localhost:8000';
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -19,6 +33,9 @@ function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [usernameAvailable, setUsernameAvailable] = useState(null);
+  const [emailAvailable, setEmailAvailable] = useState(null);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -36,6 +53,31 @@ function Register() {
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
+
+    // Check username/email availability on change
+    if (name === 'username' && value.length >= 3) {
+      checkUsernameAvailability(value);
+    }
+    if (name === 'email' && /\S+@\S+\.\S+/.test(value)) {
+      checkEmailAvailability(value);
+    }
+  };
+
+  const checkUsernameAvailability = async (username) => {
+    // In a real app, you'd call an API endpoint
+    // For now, we'll simulate with local storage check
+    const existingUsers = JSON.parse(localStorage.getItem('registered_users') || '[]');
+    const isAvailable = !existingUsers.some(user => user.username === username);
+    setUsernameAvailable(isAvailable);
+    return isAvailable;
+  };
+
+  const checkEmailAvailability = async (email) => {
+    // In a real app, you'd call an API endpoint
+    const existingUsers = JSON.parse(localStorage.getItem('registered_users') || '[]');
+    const isAvailable = !existingUsers.some(user => user.email === email);
+    setEmailAvailable(isAvailable);
+    return isAvailable;
   };
 
   const calculatePasswordStrength = (password) => {
@@ -57,27 +99,39 @@ function Register() {
     return 'bg-green-500';
   };
 
-  const validateForm = () => {
+  const getPasswordStrengthText = () => {
+    if (passwordStrength === 0) return 'Very Weak';
+    if (passwordStrength === 1) return 'Weak';
+    if (passwordStrength === 2) return 'Fair';
+    if (passwordStrength === 3) return 'Good';
+    return 'Strong';
+  };
+
+  const validateForm = async () => {
     const newErrors = {};
     
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
-    }
-    
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
+    if (!formData.username.trim()) {
+      newErrors.username = 'Username is required';
+    } else if (formData.username.length < 3) {
+      newErrors.username = 'Username must be at least 3 characters';
+    } else if (usernameAvailable === false) {
+      newErrors.username = 'Username is already taken';
     }
     
     if (!formData.email) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
+    } else if (emailAvailable === false) {
+      newErrors.email = 'Email is already registered';
     }
     
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
+    } else if (passwordStrength < 2) {
+      newErrors.password = 'Password is too weak';
     }
     
     if (formData.password !== formData.confirmPassword) {
@@ -95,18 +149,84 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    const isValid = await validateForm();
+    if (!isValid) {
       return;
     }
     
     setIsLoading(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('Registration attempt:', formData);
-      // In real app: await axios.post('/api/auth/register', formData);
+      const response = await api.post('/register', {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password
+      });
+      
+      toast.success('Account created successfully! Redirecting to login...', {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      
+      // Save user to local storage (for demo purposes)
+      const existingUsers = JSON.parse(localStorage.getItem('registered_users') || '[]');
+      existingUsers.push({
+        username: formData.username,
+        email: formData.email,
+        registeredAt: new Date().toISOString()
+      });
+      localStorage.setItem('registered_users', JSON.stringify(existingUsers));
+      
+      // Auto-login after registration
+      setTimeout(async () => {
+        try {
+          const loginResponse = await api.post('/login', {
+            email: formData.email,
+            password: formData.password
+          });
+          
+          const { access_token, user } = loginResponse.data;
+          localStorage.setItem('access_token', access_token);
+          localStorage.setItem('user', JSON.stringify(user));
+          api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+          
+          toast.success('Auto-login successful!', {
+            position: "top-right",
+            autoClose: 2000,
+          });
+          
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 2000);
+          
+        } catch (loginError) {
+          console.error('Auto-login failed:', loginError);
+          navigate('/login');
+        }
+      }, 2000);
+      
     } catch (error) {
       console.error('Registration error:', error);
+      
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      if (error.response) {
+        if (error.response.status === 400) {
+          errorMessage = error.response.data?.detail || 'User already exists or invalid data';
+        } else if (error.response.status === 500) {
+          errorMessage = 'Server error. Please try again later.';
+        } else {
+          errorMessage = error.response.data?.detail || errorMessage;
+        }
+      } else if (error.request) {
+        errorMessage = 'Cannot connect to server. Please check your connection.';
+      }
+      
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+      });
+      
     } finally {
       setIsLoading(false);
     }
@@ -117,11 +237,13 @@ function Register() {
     'Unlimited text extraction',
     'AI-powered summaries',
     '30-day document storage',
-    'Email support'
+    'Email support',
+    'Advanced Groq AI integration'
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <ToastContainer />
       <Header />
       
       <main className="container mx-auto px-4 py-12">
@@ -143,49 +265,42 @@ function Register() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Name Fields */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        First Name
-                      </label>
-                      <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        className={`w-full px-4 py-3 border ${errors.firstName ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300`}
-                        placeholder="John"
-                      />
-                      {errors.firstName && (
-                        <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
-                          <AlertCircle className="w-4 h-4" />
-                          {errors.firstName}
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        Last Name
-                      </label>
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        className={`w-full px-4 py-3 border ${errors.lastName ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300`}
-                        placeholder="Doe"
-                      />
-                      {errors.lastName && (
-                        <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
-                          <AlertCircle className="w-4 h-4" />
-                          {errors.lastName}
-                        </div>
-                      )}
-                    </div>
+                  {/* Username Field */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      className={`w-full px-4 py-3 border ${errors.username ? 'border-red-300 bg-red-50' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300 disabled:opacity-50`}
+                      placeholder="Choose a username"
+                    />
+                    {errors.username && (
+                      <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                        <AlertCircle className="w-4 h-4" />
+                        {errors.username}
+                      </div>
+                    )}
+                    {formData.username.length >= 3 && usernameAvailable !== null && !errors.username && (
+                      <div className={`flex items-center gap-2 mt-2 text-sm ${usernameAvailable ? 'text-green-600' : 'text-red-600'}`}>
+                        {usernameAvailable ? (
+                          <>
+                            <Check className="w-4 h-4" />
+                            Username is available
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle className="w-4 h-4" />
+                            Username is taken
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Email Field */}
@@ -199,13 +314,29 @@ function Register() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border ${errors.email ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300`}
+                      disabled={isLoading}
+                      className={`w-full px-4 py-3 border ${errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300 disabled:opacity-50`}
                       placeholder="you@example.com"
                     />
                     {errors.email && (
                       <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
                         <AlertCircle className="w-4 h-4" />
                         {errors.email}
+                      </div>
+                    )}
+                    {formData.email && /\S+@\S+\.\S+/.test(formData.email) && emailAvailable !== null && !errors.email && (
+                      <div className={`flex items-center gap-2 mt-2 text-sm ${emailAvailable ? 'text-green-600' : 'text-red-600'}`}>
+                        {emailAvailable ? (
+                          <>
+                            <Check className="w-4 h-4" />
+                            Email is available
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle className="w-4 h-4" />
+                            Email is already registered
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
@@ -222,13 +353,15 @@ function Register() {
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        className={`w-full px-4 py-3 border ${errors.password ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300 pr-12`}
+                        disabled={isLoading}
+                        className={`w-full px-4 py-3 border ${errors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300 disabled:opacity-50 pr-12`}
                         placeholder="Create a strong password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        disabled={isLoading}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
                       >
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
@@ -240,11 +373,7 @@ function Register() {
                         <div className="flex justify-between mb-1">
                           <span className="text-sm text-gray-600">Password strength</span>
                           <span className="text-sm font-medium">
-                            {passwordStrength === 0 && 'Very Weak'}
-                            {passwordStrength === 1 && 'Weak'}
-                            {passwordStrength === 2 && 'Fair'}
-                            {passwordStrength === 3 && 'Good'}
-                            {passwordStrength === 4 && 'Strong'}
+                            {getPasswordStrengthText()}
                           </span>
                         </div>
                         <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -296,13 +425,15 @@ function Register() {
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        className={`w-full px-4 py-3 border ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300 pr-12`}
+                        disabled={isLoading}
+                        className={`w-full px-4 py-3 border ${errors.confirmPassword ? 'border-red-300 bg-red-50' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300 disabled:opacity-50 pr-12`}
                         placeholder="Confirm your password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        disabled={isLoading}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
                       >
                         {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
@@ -323,17 +454,18 @@ function Register() {
                         name="acceptTerms"
                         checked={formData.acceptTerms}
                         onChange={handleChange}
-                        className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        disabled={isLoading}
+                        className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-50"
                       />
                       <div>
                         <span>I agree to the </span>
-                        <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
+                        <Link to='/' className="text-blue-600 hover:text-blue-700 font-medium">
                           Terms of Service
-                        </a>
+                        </Link>
                         <span> and </span>
-                        <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
+                        <Link to='/' className="text-blue-600 hover:text-blue-700 font-medium">
                           Privacy Policy
-                        </a>
+                        </Link>
                         {errors.acceptTerms && (
                           <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
                             <AlertCircle className="w-4 h-4" />
@@ -349,7 +481,8 @@ function Register() {
                         name="newsletter"
                         checked={formData.newsletter}
                         onChange={handleChange}
-                        className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        disabled={isLoading}
+                        className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-50"
                       />
                       <div>
                         <span>Yes, I'd like to receive product updates, tips, and exclusive offers via email</span>
@@ -361,11 +494,11 @@ function Register() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className={`w-full py-3 px-4 rounded-lg font-semibold transition duration-300 ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transform hover:scale-[1.02]'} text-white`}
+                    className={`w-full py-3 px-4 rounded-lg font-semibold transition duration-300 ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg'} text-white`}
                   >
                     {isLoading ? (
                       <span className="flex items-center justify-center gap-2">
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <Loader2 className="w-5 h-5 animate-spin" />
                         Creating Account...
                       </span>
                     ) : (
@@ -380,7 +513,11 @@ function Register() {
                   <div className="text-center pt-4 border-t border-gray-200">
                     <p className="text-gray-600">
                       Already have an account?{' '}
-                      <Link to="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
+                      <Link 
+                        to="/login" 
+                        className="text-blue-600 hover:text-blue-700 font-semibold disabled:opacity-50"
+                        onClick={(e) => isLoading && e.preventDefault()}
+                      >
                         Sign in here
                       </Link>
                     </p>
@@ -421,11 +558,12 @@ function Register() {
                 <h3 className="text-xl font-bold text-gray-900 mb-6">Why Join Intellinote Forge?</h3>
                 <ul className="space-y-4">
                   {[
-                    'AI-powered text extraction that actually works',
-                    'Lightning-fast Groq AI processing',
-                    'Secure and private document handling',
-                    'Export summaries in multiple formats',
-                    'Join 50,000+ satisfied users'
+                    'AI-powered text extraction with 99.8% accuracy',
+                    'Lightning-fast Groq AI processing (<2 seconds)',
+                    'Secure and encrypted document handling',
+                    'Export summaries in PDF, TXT, and JSON formats',
+                    'Join 50,000+ satisfied users worldwide',
+                    '24/7 customer support'
                   ].map((benefit, index) => (
                     <li key={index} className="flex items-start gap-3">
                       <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
@@ -439,13 +577,28 @@ function Register() {
 
               {/* Security Info */}
               <div className="bg-gradient-to-r from-gray-900 to-black rounded-2xl p-8 text-white">
-                <h3 className="text-xl font-bold mb-4">Enterprise-Grade Security</h3>
-                <p className="text-gray-300 mb-6">
-                  Your documents are encrypted end-to-end. We automatically delete processed files after 30 days for maximum privacy.
-                </p>
-                <div className="flex items-center gap-2 text-sm text-gray-400">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  SOC 2 Type II Certified • GDPR Compliant
+                <div className="flex items-start gap-3 mb-4">
+                  <Shield className="w-6 h-6 text-green-400 mt-1" />
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">Enterprise-Grade Security</h3>
+                    <p className="text-gray-300 text-sm">
+                      Your documents are encrypted end-to-end. We automatically delete processed files after 30 days.
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2 text-sm text-gray-400">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span>End-to-end encryption</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span>30-day auto-delete policy</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span>GDPR & SOC 2 compliant</span>
+                  </div>
                 </div>
               </div>
             </div>
