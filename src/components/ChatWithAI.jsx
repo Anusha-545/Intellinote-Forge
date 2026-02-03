@@ -55,19 +55,17 @@ const ChatWithAI = () => {
   // API Configuration
   const API_BASE_URL = 'https://intellinote-backend.onrender.com';
   
-  // Create axios instance with better error handling
+  // Create axios instance WITHOUT timeout
   const api = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 30000, // 30 seconds timeout
+    // No timeout - requests won't automatically time out
   });
 
   // Add interceptors for better error handling
   api.interceptors.response.use(
     (response) => response,
     (error) => {
-      if (error.code === 'ECONNABORTED') {
-        throw new Error('Request timeout. Please check your connection.');
-      }
+      // Removed ECONNABORTED check since we don't have timeout
       if (!error.response) {
         throw new Error('Cannot connect to backend server. Make sure the server is running on https://intellinote-backend.onrender.com');
       }
@@ -382,9 +380,8 @@ const ChatWithAI = () => {
         errorMessage = "Cannot connect to backend server. Please make sure the server is running on https://intellinote-backend.onrender.com";
         setBackendAvailable(false);
         setConnectionStatus('error');
-      } else if (error.message.includes('timeout')) {
-        errorMessage = "Request timeout. Please try again.";
-      } else if (error.response) {
+      } 
+      else if (error.response) {
         if (error.response.status === 401) {
           errorMessage = "Authentication required. Please login again.";
           requiresLogin = true;
@@ -418,7 +415,7 @@ const ChatWithAI = () => {
 
       // Redirect to login if authentication is required
       if (requiresLogin) {
-        setTimeout(() => navigate('/login'), 2000);
+        setTimeout(() => navigate('/login'));
       }
 
     } finally {
@@ -1018,6 +1015,5 @@ const ChatWithAI = () => {
       </div>
     </div>
   );
-};
-
+}; 
 export default ChatWithAI;
