@@ -53,7 +53,7 @@ const ChatWithAI = () => {
   const textareaRef = useRef(null);
 
   // API Configuration
-  const API_BASE_URL = 'http://localhost:8000';
+  const API_BASE_URL = 'https://intellinote-backend.onrender.com';
   
   // Create axios instance WITHOUT timeout
   const api = axios.create({
@@ -67,7 +67,7 @@ const ChatWithAI = () => {
     (error) => {
       // Removed ECONNABORTED check since we don't have timeout
       if (!error.response) {
-        throw new Error('Cannot connect to backend server. Make sure the server is running on http://localhost:8000');
+        throw new Error('Cannot connect to backend server. Make sure the server is running on https://intellinote-backend.onrender.com');
       }
       throw error;
     }
@@ -165,7 +165,7 @@ const ChatWithAI = () => {
       if (isAuthenticated) {
         setMessages(prev => [prev[0], {
           id: 2,
-          text: "⚠️ Cannot connect to backend server. Please make sure the server is running on http://localhost:8000",
+          text: "⚠️ Cannot connect to backend server. Please make sure the server is running on https://intellinote-backend.onrender.com",
           sender: 'system',
           timestamp: new Date().toISOString(),
           isError: true,
@@ -377,7 +377,7 @@ const ChatWithAI = () => {
       let requiresLogin = false;
       
       if (error.message.includes('Cannot connect to backend')) {
-        errorMessage = "Cannot connect to backend server. Please make sure the server is running on http://localhost:8000";
+        errorMessage = "Cannot connect to backend server. Please make sure the server is running on https://intellinote-backend.onrender.com";
         setBackendAvailable(false);
         setConnectionStatus('error');
       } 
@@ -784,7 +784,7 @@ const ChatWithAI = () => {
                   <div>
                     <h3 className="font-bold text-red-800 mb-1">Backend Connection Required</h3>
                     <p className="text-red-700 text-sm">
-                      Cannot connect to backend server. Please make sure your FastAPI server is running on http://localhost:8000
+                      Cannot connect to backend server. Please make sure your FastAPI server is running on https://intellinote-backend.onrender.com
                     </p>
                     <div className="mt-3 text-xs text-red-600 bg-red-50 p-3 rounded-lg">
                       <p className="font-semibold">To fix this:</p>
