@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { LogIn, Eye, EyeOff, Mail, Lock, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -6,6 +6,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from './Header';
 import Footer from './Footer';
+import { useAuth } from '../Context/AuthContext';
 
 // Configure axios
 const API_BASE_URL = "https://intellinote-backend.onrender.com";
@@ -17,6 +18,8 @@ const api = axios.create({
 });
 
 function Login() {
+const { saveAuth } = useAuth();
+
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -77,8 +80,10 @@ function Login() {
       const { access_token, user } = response.data;
       
       // Store token and user data
-      localStorage.setItem('access_token', access_token);
-      localStorage.setItem('user', JSON.stringify(user));
+      // localStorage.setItem('access_token', access_token);
+      // localStorage.setItem('user', JSON.stringify(user));
+      
+      saveAuth(access_token,user);
       
       // Set axios default header for future requests
       api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
@@ -160,7 +165,6 @@ function Login() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <ToastContainer />
-      <Header />
       
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">

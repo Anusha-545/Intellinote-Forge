@@ -1,4 +1,31 @@
+// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// import HomePage from "./components/HomePage";
+// import Login from "./components/Login";
+// import Register from "./components/Register";
+// import ContactUs from "./components/ContactUs";
+// import AboutUs from "./components/AboutUs";
+// import ChatWithAI from './components/ChatWithAI';
+
+// function App() {
+//   return (
+//     <Router>
+//       <Routes>
+//         <Route path="/" element={<HomePage />} />
+//         <Route path="/login" element={<Login />} />
+//         <Route path="/register" element={<Register />} />
+//         <Route path="/contact" element={<ContactUs />} />
+//         <Route path="/about" element={<AboutUs />} />
+//         <Route path="/chat" element={<ChatWithAI />} />
+//       </Routes>
+//     </Router>
+//   );
+// }
+
+// export default App;
+
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from './Context/AuthContext.jsx'
+import ProtectedRoute from "./Context/ProtectedRoute";
 import HomePage from "./components/HomePage";
 import Login from "./components/Login";
 import Register from "./components/Register";
@@ -6,25 +33,32 @@ import ContactUs from "./components/ContactUs";
 import AboutUs from "./components/AboutUs";
 import ChatWithAI from './components/ChatWithAI';
 import "./App.css";
+import Header from "./components/Header.jsx";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Remove the duplicate route - only keep one for "/" */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/contact" element={<ContactUs />} />
-        <Route path="/about" element={<AboutUs />} />
-        <Route path="/chat" element={<ChatWithAI />} />
-        
-        {/* Optional: If you want ChatWithAI as homepage, change line 17 to:
-            <Route path="/" element={<ChatWithAI />} />
-            and remove the HomePage import if not needed */}
+    <AuthProvider>
+      <Router>
+      <Header/>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/about" element={<AboutUs />} />
 
-      </Routes>
-    </Router>
+          {/* 🔒 Protected Route */}
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute>
+                <ChatWithAI />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 
