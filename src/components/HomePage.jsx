@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import { Upload, FileText, Zap, Shield, BarChart, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 function HomePage() {
   const [dragOver, setDragOver] = useState(false);
+  const navigation = useNavigate();
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -24,8 +26,7 @@ function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <Header />
-      
+            
       {/* Hero Section */}
       <main className="container mx-auto px-4 py-12">
         {/* Hero Content */}
@@ -40,11 +41,11 @@ function HomePage() {
           
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 transform hover:scale-105 flex items-center justify-center gap-2">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 transform hover:scale-105 flex items-center justify-center gap-2" onClick={()=>navigation("/chat")}>
               <Upload size={20} />
               Start Uploading PDFs
             </button>
-            <button className="bg-white hover:bg-gray-50 text-blue-600 font-semibold py-3 px-8 rounded-lg border-2 border-blue-600 transition duration-300 flex items-center justify-center gap-2">
+            <button className="bg-white hover:bg-gray-50 text-blue-600 font-semibold py-3 px-8 rounded-lg border-2 border-blue-600 transition duration-300 flex items-center justify-center gap-2"  onClick={()=>navigation("/chat")}>
               <Zap size={20} />
               Try Live Demo
             </button>
@@ -55,9 +56,10 @@ function HomePage() {
         <div className="max-w-4xl mx-auto mb-20">
           <div 
             className={`border-2 border-dashed rounded-2xl p-8 transition-all duration-300 ${dragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400'}`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
+            // onDragOver={handleDragOver}
+            // onDragLeave={handleDragLeave}
+            // onDrop={handleDrop}
+             onClick={()=>navigation("/chat")}
           >
             <div className="text-center py-12">
               <div className="w-20 h-20 mx-auto mb-6 bg-blue-100 rounded-full flex items-center justify-center">
@@ -68,7 +70,7 @@ function HomePage() {
               </h3>
               <p className="text-gray-500 mb-6">Or click to browse files</p>
               <label className="cursor-pointer">
-                <input type="file" className="hidden" accept=".pdf" multiple />
+                {/* <input type="file" className="hidden" accept=".pdf" multiple /> */}
                 <div className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition duration-300">
                   <FileText size={20} />
                   Browse PDF Files
